@@ -195,7 +195,7 @@ function attachModuleSymbols(doclets, modules) {
  * @return {string} The HTML for the navigation sidebar.
  */
 function buildNav(members) {
-    var nav = '<h2><a href="index.html">Index</a></h2>',
+    var nav = '<h2><a href="index.html">Home</a></h2>',
         seen = {},
         hasClassList = false,
         classNav = '',
@@ -225,12 +225,55 @@ function buildNav(members) {
         nav += '</ul>';
     }
 
+    if (members.namespaces.length) {
+        nav += '<h3>Namespaces</h3><ul>';
+        members.namespaces.forEach(function(n) {
+            if ( !hasOwnProp.call(seen, n.longname) ) {
+                nav += '<li>'+linkto(n.longname, n.name)+'</li>';
+            }
+            seen[n.longname] = true;
+        });
+        
+        nav += '</ul>';
+    }
+
     if (members.classes.length) {
         members.classes.forEach(function(c) {
-            if ( !hasOwnProp.call(seen, c.longname) ) {
-                classNav += '<li>'+linkto(c.longname, c.name)+'</li>';
+            var moduleSameName = find({kind: 'module', longname: c.longname});
+            if (moduleSameName.length && c.longname.indexOf("adapters") < 0) {
+                c.name = c.name.replace('module:', 'require("')+'")';
+                moduleClasses++;
+                moduleSameName[0].module = c;
             }
-            seen[c.longname] = true;
+            if (moduleClasses !== -1 && moduleClasses < members.classes.length) {
+                nav += '<h3>Modules</h3><ul>';
+                moduleClasses = -1;
+            }
+            if ( !hasOwnProp.call(seen, c.longname) && c.longname.indexOf("adapters") < 0) {
+                nav += '<li>'+linkto(c.longname, c.name)+'</li>';
+                seen[c.longname] = true;
+            }
+        });
+
+        nav += '</ul>';
+
+        // Adapters
+        var moduleAdapters = 0;
+        members.classes.forEach(function(c) {
+            var moduleSameName = find({kind: 'module', longname: c.longname});
+            if (moduleSameName.length && c.longname.indexOf("adapters") >= 0) {
+                c.name = c.name.replace('module:', 'require("')+'")';
+                moduleAdapters++;
+                moduleSameName[0].module = c;
+            }
+            if (moduleAdapters !== -1 && moduleAdapters < members.classes.length) {
+                nav += '<h3>Adapters</h3><ul>';
+                moduleAdapters = -1;
+            }
+            if ( !hasOwnProp.call(seen, c.longname) && c.longname.indexOf("adapters") >= 0) {
+                nav += '<li>'+linkto(c.longname, c.longname.substr(9))+'</li>';
+                seen[c.longname] = true;
+            }
         });
         
         if (classNav !== '') {
@@ -247,18 +290,6 @@ function buildNav(members) {
                 nav += '<li>'+linkto(e.longname, e.name)+'</li>';
             }
             seen[e.longname] = true;
-        });
-        
-        nav += '</ul>';
-    }
-    
-    if (members.namespaces.length) {
-        nav += '<h3>Namespaces</h3><ul>';
-        members.namespaces.forEach(function(n) {
-            if ( !hasOwnProp.call(seen, n.longname) ) {
-                nav += '<li>'+linkto(n.longname, n.name)+'</li>';
-            }
-            seen[n.longname] = true;
         });
         
         nav += '</ul>';
@@ -495,7 +526,7 @@ exports.publish = function(taffyData, opts, tutorials) {
     var files = find({kind: 'file'}),
         packages = find({kind: 'package'});
 
-    generate('Index',
+    generate('<img src="http://aerogear.org/img/aerogear_logo_200px.png"/>',
         packages.concat(
             [{kind: 'mainpage', readme: opts.readme, longname: (opts.mainpagetitle) ? opts.mainpagetitle : 'Main Page'}]
         ).concat(files),
@@ -509,14 +540,18 @@ exports.publish = function(taffyData, opts, tutorials) {
     var externals = taffy(members.externals);
     
     Object.keys(helper.longnameToUrl).forEach(function(longname) {
-        var myClasses = helper.find(classes, {longname: longname});
-        if (myClasses.length) {
-            generate('Class: ' + myClasses[0].name, myClasses, helper.longnameToUrl[longname]);
-        }
-        
-        var myModules = helper.find(modules, {longname: longname});
-        if (myModules.length) {
-            generate('Module: ' + myModules[0].name, myModules, helper.longnameToUrl[longname]);
+        if ( hasOwnProp.call(helper.longnameToUrl, longname) ) {
+            var myClasses = helper.find(classes, {longname: longname}),
+                adapterTitle;
+            if (myClasses.length) {
+                adapterTitle = longname.indexOf("adapters") >= 0 ? "Adapter: " : "Module: ";
+                generate(adapterTitle+myClasses[0].name, myClasses, helper.longnameToUrl[longname]);
+            }
+            
+            var myModules = helper.find(modules, {longname: longname});
+            if (myModules.length) {
+                generate('Module: ' + myModules[0].name, myModules, helper.longnameToUrl[longname]);
+            }
         }
 
         var myNamespaces = helper.find(namespaces, {longname: longname});
