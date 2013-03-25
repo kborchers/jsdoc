@@ -120,7 +120,7 @@
         var typedefs = self.find({kind: 'typedef', memberof: title === 'Global' ? {isUndefined: true} : doc.longname}); 
         if (typedefs && typedefs.length && typedefs.forEach) { 
     ?>
-        <h3 class="subsection-title">Type Definitions</h3>
+        <h3 class="subsection-title">Callback Definitions</h3>
         
         <dl><?js typedefs.forEach(function(e) {
                 if (e.signature) {
