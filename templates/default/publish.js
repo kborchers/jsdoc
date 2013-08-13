@@ -250,7 +250,7 @@ function buildNav(members) {
                 moduleClasses = -1;
             }
             if ( !hasOwnProp.call(seen, c.longname) && c.longname.indexOf("adapters") < 0) {
-                nav += '<li>'+linkto(c.longname, c.name)+'</li>';
+                nav += '<li>'+linkto(c.longname, c.longname)+'</li>';
                 seen[c.longname] = true;
             }
         });
