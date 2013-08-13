@@ -199,7 +199,8 @@ function buildNav(members) {
         seen = {},
         hasClassList = false,
         classNav = '',
-        globalNav = '';
+        globalNav = '',
+        moduleClasses = 0;
 
     if (members.modules.length) {
         nav += '<h3>Modules</h3><ul>';
