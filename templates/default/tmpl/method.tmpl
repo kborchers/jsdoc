@@ -11,6 +11,10 @@ var self = this;
 </dt>
 <dd>
     
+    <?js if (data.status) { ?>
+    <h5>Status: <span class="label<?js= data.status ?>"><?js= data.status ?></span></h5>
+    <?js } ?>
+
     <?js if (data.description) { ?>
     <div class="description">
         <?js= data.description ?>
